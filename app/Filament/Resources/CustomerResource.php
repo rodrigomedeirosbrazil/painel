@@ -3,15 +3,22 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomerResource\Pages;
-use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Models\Customer;
-use Filament\Forms;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Support\RawJs;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Http;
 
 class CustomerResource extends Resource
 {
@@ -19,30 +26,66 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $label = 'Clientes';
+
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('id')
-                    ->required(),
-                Forms\Components\TextInput::make('name'),
-                Forms\Components\TextInput::make('doc'),
-                Forms\Components\TextInput::make('email')
-                    ->email(),
-                Forms\Components\TextInput::make('phone')
-                    ->tel(),
-                Forms\Components\TextInput::make('city')
-                    ->required(),
-                Forms\Components\TextInput::make('state')
-                    ->required(),
-                Forms\Components\TextInput::make('street')
-                    ->required(),
-                Forms\Components\TextInput::make('number'),
-                Forms\Components\TextInput::make('complement'),
-                Forms\Components\TextInput::make('district'),
-                Forms\Components\TextInput::make('zipcode'),
-                Forms\Components\Textarea::make('additional')
-                    ->columnSpanFull(),
+                Section::make([
+                    TextInput::make('name')
+                        ->label('Nome')
+                        ->required(),
+                    TextInput::make('email')
+                        ->email(),
+                    TextInput::make('doc')
+                        ->mask(RawJs::make(<<<'JS'
+                            $input.length > 14 ? '99.999.999/9999-99' : '999.999.999-99'
+                        JS))
+                        ->rule('cpf_ou_cnpj')
+                        ->label('Documento'),
+                    TextInput::make('phone')
+                        ->mask(RawJs::make(<<<'JS'
+                            $input.length > 14 ? '(99) 99999-9999' : '(99) 9999-9999'
+                        JS))
+                        ->label('Telefone'),
+
+                ])->columns(2),
+                Section::make([
+                    TextInput::make('zipcode')
+                        ->label('CEP')
+                        ->mask('99.999-999')
+                        ->suffixAction(
+                            fn ($state, Set $set) => Action::make('search-action')
+                                ->icon('heroicon-o-magnifying-glass')
+                                ->action(function () use ($state, $set) {
+                                    $cepData = static::getAddressData($state);
+
+                                    $set('district', data_get($cepData, 'neighborhood'));
+                                    $set('street', data_get($cepData, 'street'));
+                                    $set('city', data_get($cepData, 'city'));
+                                    $set('state', data_get($cepData, 'state'));
+                                    $set('longitude', data_get($cepData, 'location.coordinates.longitude'));
+                                    $set('latitude', data_get($cepData, 'location.coordinates.latitude'));
+                                })
+                        ),
+                    TextInput::make('city')
+                        ->label('Cidade'),
+                    TextInput::make('state')
+                        ->label('Estado'),
+                    TextInput::make('street')
+                        ->label('Endereço'),
+                    TextInput::make('number')
+                        ->label('Número'),
+                    TextInput::make('complement')
+                        ->label('Complemento'),
+                    TextInput::make('district')
+                        ->label('Bairro'),
+                ])
+                    ->collapsible()
+                    ->description('Endereço')
+                    ->columns(2),
             ]);
     }
 
@@ -50,62 +93,36 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('doc')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('doc')
+                TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('city')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('state')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('street')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('number')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('complement')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('district')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('zipcode')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->paginated([10, 25, 50, 100]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -113,5 +130,26 @@ class CustomerResource extends Resource
             'create' => Pages\CreateCustomer::route('/create'),
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
-    }    
+    }
+
+    public static function getAddressData(?string $cep): ?array
+    {
+        if (blank($cep)) {
+            Filament::notify('danger', 'Digite o CEP para buscar o endereço');
+
+            return null;
+        }
+
+        try {
+            $cepData = Http::get("https:/brasilapi.com.br/api/cep/v2/{$cep}")
+                ->throw()
+                ->json();
+        } catch (RequestException $e) {
+            Filament::notify('danger', 'Erro ao buscar o endereço');
+
+            return null;
+        }
+
+        return $cepData;
+    }
 }

@@ -9,18 +9,18 @@ return new class () extends Migration {
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name')->nullable();
+            $table->string('name');
             $table->string('doc')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
 
-            $table->string('city');
-            $table->string('state');
-            $table->string('street');
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('street')->nullable();
             $table->string('number')->nullable();
             $table->string('complement')->nullable();
             $table->string('district')->nullable();
-            $table->string('zipcode', 8)->nullable();
+            $table->string('zipcode')->nullable();
 
             $table->json('additional')->nullable();
 
