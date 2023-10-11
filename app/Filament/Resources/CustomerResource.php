@@ -100,13 +100,16 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 TextColumn::make('doc')
+                    ->label('Documento')
                     ->searchable()
                     ->formatStateUsing(fn (string $state): string => format_doc($state)),
                 TextColumn::make('email')
                     ->searchable(),
                 TextColumn::make('phone')
+                    ->label('Telefone')
                     ->searchable()
                     ->formatStateUsing(fn (string $state): string => format_phone($state)),
             ])
