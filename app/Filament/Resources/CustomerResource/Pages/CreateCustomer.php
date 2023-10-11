@@ -9,5 +9,7 @@ class CreateCustomer extends CreateRecord
 {
     protected static string $resource = CustomerResource::class;
 
+    protected static ?string $breadcrumb = 'Novo Cliente';
+
     protected static ?string $title = 'Novo Cliente';
 }

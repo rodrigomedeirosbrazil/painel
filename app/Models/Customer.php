@@ -25,12 +25,4 @@ class Customer extends Model
         'zipcode',
         'additional',
     ];
-
-    protected $casts = [
-        'additional' => 'array',
-    ];
-
-    protected $attributes = [
-        'additional' => '[]',
-    ];
 }

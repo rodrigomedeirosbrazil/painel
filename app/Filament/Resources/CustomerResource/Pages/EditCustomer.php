@@ -12,6 +12,8 @@ class EditCustomer extends EditRecord
 
     protected static ?string $title = 'Cliente';
 
+    protected static ?string $breadcrumb = 'Cliente';
+
     protected function getHeaderActions(): array
     {
         return [

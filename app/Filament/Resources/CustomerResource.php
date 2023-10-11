@@ -7,6 +7,7 @@ use App\Models\Customer;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Set;
@@ -28,7 +29,6 @@ class CustomerResource extends Resource
 
     protected static ?string $label = 'Clientes';
 
-
     public static function form(Form $form): Form
     {
         return $form
@@ -44,13 +44,13 @@ class CustomerResource extends Resource
                             $input.replace(/\D/g, '').length >= 12 ? '99.999.999/9999-99' : '999.999.999-99'
                         JS))
                         ->label('Documento')
-                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
+                        ->dehydrateStateUsing(fn (?string $state): ?string => only_numbers($state)),
                     TextInput::make('phone')
                         ->mask(RawJs::make(<<<'JS'
                             $input.replace(/\D/g, '').length >= 11 ? '(99) 99999-9999': '(99) 9999-9999'
                         JS))
                         ->label('Telefone')
-                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
+                        ->dehydrateStateUsing(fn (?string $state): ?string => only_numbers($state)),
                 ])->columns(2),
                 Section::make([
                     TextInput::make('zipcode')
@@ -70,7 +70,7 @@ class CustomerResource extends Resource
                                     $set('latitude', data_get($cepData, 'location.coordinates.latitude'));
                                 })
                         )
-                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
+                        ->dehydrateStateUsing(fn (?string $state): ?string => only_numbers($state)),
                     TextInput::make('city')
                         ->label('Cidade'),
                     TextInput::make('state')
@@ -87,6 +87,11 @@ class CustomerResource extends Resource
                     ->collapsible()
                     ->description('Endereço')
                     ->columns(2),
+                Section::make([
+                    Textarea::make('additional')->label(''),
+                ])
+                    ->collapsible(true)
+                    ->description('Informações adicionais'),
             ]);
     }
 

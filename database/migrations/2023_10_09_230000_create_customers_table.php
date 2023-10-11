@@ -22,7 +22,7 @@ return new class () extends Migration {
             $table->string('district')->nullable();
             $table->string('zipcode')->nullable();
 
-            $table->json('additional')->nullable();
+            $table->text('additional')->nullable();
 
             $table->index(['doc']);
 

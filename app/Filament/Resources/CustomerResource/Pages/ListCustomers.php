@@ -12,6 +12,8 @@ class ListCustomers extends ListRecords
 {
     protected static string $resource = CustomerResource::class;
 
+    protected static ?string $breadcrumb = 'Lista de clientes';
+
     protected function getHeaderActions(): array
     {
         return [
