@@ -41,16 +41,16 @@ class CustomerResource extends Resource
                         ->email(),
                     TextInput::make('doc')
                         ->mask(RawJs::make(<<<'JS'
-                            $input.length > 14 ? '99.999.999/9999-99' : '999.999.999-99'
+                            $input.replace(/\D/g, '').length >= 12 ? '99.999.999/9999-99' : '999.999.999-99'
                         JS))
-                        ->rule('cpf_ou_cnpj')
-                        ->label('Documento'),
+                        ->label('Documento')
+                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
                     TextInput::make('phone')
                         ->mask(RawJs::make(<<<'JS'
-                            $input.length > 14 ? '(99) 99999-9999' : '(99) 9999-9999'
+                            $input.replace(/\D/g, '').length >= 11 ? '(99) 99999-9999': '(99) 9999-9999'
                         JS))
-                        ->label('Telefone'),
-
+                        ->label('Telefone')
+                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
                 ])->columns(2),
                 Section::make([
                     TextInput::make('zipcode')
@@ -69,7 +69,8 @@ class CustomerResource extends Resource
                                     $set('longitude', data_get($cepData, 'location.coordinates.longitude'));
                                     $set('latitude', data_get($cepData, 'location.coordinates.latitude'));
                                 })
-                        ),
+                        )
+                        ->dehydrateStateUsing(fn (string $state): string => only_numbers($state)),
                     TextInput::make('city')
                         ->label('Cidade'),
                     TextInput::make('state')
@@ -96,11 +97,13 @@ class CustomerResource extends Resource
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('doc')
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state): string => format_doc($state)),
                 TextColumn::make('email')
                     ->searchable(),
                 TextColumn::make('phone')
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state): string => format_phone($state)),
             ])
             ->filters([
                 //
