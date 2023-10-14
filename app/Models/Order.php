@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Order extends Model
 {
@@ -30,7 +31,7 @@ class Order extends Model
         'amount' => 'decimal:2',
     ];
 
-    public function items()
+    public function items(): BelongsToMany
     {
         return $this->belongsToMany(Item::class, 'order_item', 'order_id', 'item_id');
     }
