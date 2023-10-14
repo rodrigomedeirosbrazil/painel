@@ -98,6 +98,7 @@ class OrderResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
+            ->defaultSort('pickup', 'desc')
             ->paginated([10, 25, 50, 100]);
     }
 
