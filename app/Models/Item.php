@@ -26,4 +26,9 @@ class Item extends Model
         'value' => 'decimal:2',
         'value_repo' => 'decimal:2',
     ];
+
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'order_item', 'item_id', 'order_id');
+    }
 }
