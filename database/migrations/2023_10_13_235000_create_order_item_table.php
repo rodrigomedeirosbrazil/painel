@@ -14,8 +14,8 @@ return new class () extends Migration {
             $table->uuid('order_id');
             $table->uuid('item_id');
             $table->integer('quantity')->default(1);
-            $table->decimal('value', 10, 2)->default(0);
-            $table->decimal('value_repo', 10, 2)->default(0);
+            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('price_repo', 10, 2)->default(0);
         });
     }
 

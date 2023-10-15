@@ -16,7 +16,7 @@ return new class () extends Migration {
             $table->string('description')->nullable();
             $table->decimal('value', 10, 2)->nullable();
             $table->decimal('value_repo', 10, 2)->nullable();
-            $table->unsignedInteger('quantity')->default(0);
+            $table->unsignedInteger('stock')->default(0);
             $table->unsignedInteger('width')->nullable();
             $table->unsignedInteger('height')->nullable();
             $table->unsignedInteger('length')->nullable();

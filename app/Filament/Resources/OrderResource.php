@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Forms\Components\PtbrMoney;
 use App\Filament\Resources\OrderResource\Pages;
+use App\Filament\Resources\OrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Order;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -80,6 +81,7 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('pickup')
                     ->translateLabel()
                     ->date()
+                    ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('delivery')
@@ -105,7 +107,7 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ItemsRelationManager::class,
         ];
     }
 

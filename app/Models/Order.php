@@ -33,7 +33,14 @@ class Order extends Model
 
     public function items(): BelongsToMany
     {
-        return $this->belongsToMany(Item::class, 'order_item', 'order_id', 'item_id');
+        return $this->belongsToMany(
+            Item::class,
+            'order_item',
+            'order_id',
+            'item_id'
+        )
+            ->withPivot('quantity', 'price', 'price_repo')
+            ->using(OrderItem::class);
     }
 
     public function customer(): BelongsTo

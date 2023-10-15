@@ -17,7 +17,7 @@ class Item extends Model
         'description',
         'value',
         'value_repo',
-        'quantity',
+        'stock',
         'width',
         'height',
         'length',
@@ -30,6 +30,13 @@ class Item extends Model
 
     public function orders(): BelongsToMany
     {
-        return $this->belongsToMany(Order::class, 'order_item', 'item_id', 'order_id');
+        return $this->belongsToMany(
+            Order::class,
+            'order_item',
+            'item_id',
+            'order_id'
+        )
+            ->withPivot('quantity', 'price', 'price_repo')
+            ->using(OrderItem::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Forms\Components\PtbrMoney;
+use App\Filament\Resources\CustomerResource\RelationManagers\ItemOrdersRelationManager;
 use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
 use Filament\Forms\Components\Grid;
@@ -40,8 +41,8 @@ class ItemResource extends Resource
                     PtbrMoney::make('value_repo')
                         ->label('Valor de reposição'),
 
-                    TextInput::make('quantity')
-                        ->label('Quantidade')
+                    TextInput::make('stock')
+                        ->label('Estoque')
                         ->required()
                         ->numeric()
                         ->default(0),
@@ -92,7 +93,7 @@ class ItemResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ItemOrdersRelationManager::class,
         ];
     }
 
