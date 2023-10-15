@@ -36,7 +36,6 @@ class Item extends Model
             'item_id',
             'order_id'
         )
-            ->withPivot('quantity', 'price', 'price_repo')
-            ->using(OrderItem::class);
+            ->withPivot('quantity', 'price', 'price_repo');
     }
 }

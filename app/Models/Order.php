@@ -39,8 +39,7 @@ class Order extends Model
             'order_id',
             'item_id'
         )
-            ->withPivot('quantity', 'price', 'price_repo')
-            ->using(OrderItem::class);
+            ->withPivot('quantity', 'price', 'price_repo');
     }
 
     public function customer(): BelongsTo
