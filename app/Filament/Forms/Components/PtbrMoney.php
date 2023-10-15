@@ -49,7 +49,8 @@ class PtbrMoney extends TextInput
                     floatval(
                         Str::of($state)
                             ->replace('.', '')
-                            ->replace(',', '.')
+                            ->replace(',', '')
+                            ->substrReplace('.', -2, 0)
                             ->toString()
                     ) :
                     null
