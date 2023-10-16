@@ -45,8 +45,7 @@ class ItemsRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nome')
-                    ->searchable(),
+                    ->label('Nome'),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Preço')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, ',', '.')),
@@ -86,14 +85,14 @@ class ItemsRelationManager extends RelationManager
                     }),
             ])
             ->actions([
-                EditAction::make(),
-                DetachAction::make(),
+                EditAction::make()->label(''),
+                DetachAction::make()->label(''),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->paginated([10, 25, 50, 100]);
+            ->paginated(false);
     }
 }
