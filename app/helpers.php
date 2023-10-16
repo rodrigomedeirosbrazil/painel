@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 if (! function_exists('only_numbers')) {
     function only_numbers(?string $data): ?string
     {
@@ -79,5 +81,20 @@ if (! function_exists('format_doc')) {
         }
 
         return format_cnpj($numbers);
+    }
+}
+
+if (! function_exists('ptbr_money_to_float')) {
+    function ptbr_money_to_float(?string $data): ?float
+    {
+        $numbers = Str::of(only_numbers($data));
+
+        if ($numbers->isEmpty()) {
+            return 0;
+        }
+
+        return floatval(
+            $numbers->substrReplace('.', -2, 0)->toString()
+        );
     }
 }
