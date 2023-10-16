@@ -4,15 +4,16 @@ namespace App\Filament\Resources;
 
 use App\Filament\Forms\Components\PtbrMoney;
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Order;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Get;
 
 class OrderResource extends Resource
 {
@@ -50,14 +51,28 @@ class OrderResource extends Resource
                     ->translateLabel(),
 
                 PtbrMoney::make('deposit')
+                    ->live(onBlur: true)
                     ->translateLabel(),
 
                 PtbrMoney::make('discount')
+                    ->live(onBlur: true)
                     ->translateLabel(),
 
                 PtbrMoney::make('amount')
                     ->translateLabel()
                     ->disabled(),
+
+                Placeholder::make('totalToPay')
+                    ->label('Total a pagar')
+                    ->content(function (Get $get) {
+                        $amount = ptbr_money_to_float($get('amount') ?? 0);
+                        $deposit = ptbr_money_to_float($get('deposit') ?? 0);
+                        $discount = ptbr_money_to_float($get('discount') ?? 0);
+
+                        $totalToPay = $amount - $deposit - $discount;
+
+                        return number_format($totalToPay, 2, ',', '.');
+                    }),
             ]);
     }
 
@@ -107,7 +122,6 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ItemsRelationManager::class,
         ];
     }
 
