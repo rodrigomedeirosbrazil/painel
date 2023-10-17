@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
@@ -28,14 +28,8 @@ class Item extends Model
         'value_repo' => 'decimal:2',
     ];
 
-    public function orders(): BelongsToMany
+    public function orders(): HasMany
     {
-        return $this->belongsToMany(
-            Order::class,
-            'order_item',
-            'item_id',
-            'order_id'
-        )
-            ->withPivot('quantity', 'price', 'price_repo');
+        return $this->hasMany(OrderItem::class);
     }
 }

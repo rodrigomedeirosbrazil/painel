@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -31,15 +31,9 @@ class Order extends Model
         'amount' => 'decimal:2',
     ];
 
-    public function items(): BelongsToMany
+    public function items(): HasMany
     {
-        return $this->belongsToMany(
-            Item::class,
-            'order_item',
-            'order_id',
-            'item_id'
-        )
-            ->withPivot('quantity', 'price', 'price_repo');
+        return $this->hasMany(OrderItem::class);
     }
 
     public function customer(): BelongsTo
