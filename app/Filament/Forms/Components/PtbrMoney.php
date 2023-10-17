@@ -38,7 +38,9 @@ class PtbrMoney extends TextInput
             ])
             ->dehydrateMask()
             ->default(0.00)
-            ->formatStateUsing(fn ($state) => $state ? number_format(floatval($state), 2, ',', '.') : $this->initialValue);
+            ->formatStateUsing(function ($state) {
+                return $state ? number_format(floatval($state), 2, ',', '.') : $this->initialValue;
+            });
     }
 
     public function dehydrateMask(bool|Closure $condition = true): static

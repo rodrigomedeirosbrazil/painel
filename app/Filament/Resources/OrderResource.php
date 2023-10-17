@@ -4,9 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Forms\Components\PtbrMoney;
 use App\Filament\Resources\OrderResource\Pages;
+use App\Models\Item;
 use App\Models\Order;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -14,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 
 class OrderResource extends Resource
 {
@@ -28,51 +32,112 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('description')
-                    ->translateLabel(),
+                Grid::make([])->schema([
+                    TextInput::make('description')
+                        ->translateLabel(),
 
-                Select::make('customer_id')
-                    ->label('Cliente')
-                    ->searchable(['name', 'phone'])
-                    ->relationship(name: 'customer', titleAttribute: 'name')
-                    ->getOptionLabelFromRecordUsing(
-                        fn ($record) => "{$record->name}"
-                        . (
-                            $record->phone
-                            ? ' - ' . format_phone($record->phone)
-                            : ''
-                        )
-                    ),
+                    Select::make('customer_id')
+                        ->label('Cliente')
+                        ->searchable(['name', 'phone'])
+                        ->relationship(name: 'customer', titleAttribute: 'name')
+                        ->getOptionLabelFromRecordUsing(
+                            fn ($record) => "{$record->name}"
+                            . (
+                                $record->phone
+                                ? ' - ' . format_phone($record->phone)
+                                : ''
+                            )
+                        ),
+                ])->columns(2),
 
-                DatePicker::make('pickup')
-                    ->translateLabel(),
+                Grid::make([])->schema([
+                    DatePicker::make('pickup')
+                        ->translateLabel(),
 
-                DatePicker::make('delivery')
-                    ->translateLabel(),
+                    DatePicker::make('delivery')
+                        ->translateLabel(),
+                ])->columns(2),
 
-                PtbrMoney::make('deposit')
-                    ->live(onBlur: true)
-                    ->translateLabel(),
+                Grid::make([])->schema([
+                    PtbrMoney::make('deposit')
+                        ->live(onBlur: true)
+                        ->translateLabel(),
 
-                PtbrMoney::make('discount')
-                    ->live(onBlur: true)
-                    ->translateLabel(),
+                    PtbrMoney::make('discount')
+                        ->live(onBlur: true)
+                        ->translateLabel(),
+                ])->columns(2),
 
-                PtbrMoney::make('amount')
-                    ->translateLabel()
-                    ->disabled(),
+                Grid::make([])->schema([
+                    Repeater::make('items')
+                        ->label('Itens')
+                        ->relationship()
+                        ->schema([
+                            Grid::make([])->schema([
+                                Select::make('item_id')
+                                    ->label('Item')
+                                    ->relationship('item', 'name')
+                                    ->searchable(['name'])
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(
+                                        function (callable $set, $state) {
+                                            $item = Item::find($state);
+                                            $set('quantity', $item?->stock ?? 1);
+                                            $set('price', $item?->value ?? 1);
+                                            $set('price_repo', $item?->value_repo ?? 1);
+                                        }
+                                    ),
 
-                Placeholder::make('totalToPay')
-                    ->label('Total a pagar')
-                    ->content(function (Get $get) {
-                        $amount = ptbr_money_to_float($get('amount') ?? 0);
-                        $deposit = ptbr_money_to_float($get('deposit') ?? 0);
-                        $discount = ptbr_money_to_float($get('discount') ?? 0);
+                                PtbrMoney::make('price')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->label('Preço'),
 
-                        $totalToPay = $amount - $deposit - $discount;
+                                PtbrMoney::make('price_repo')
+                                    ->required()
+                                    ->label('Preço de reposição'),
 
-                        return number_format($totalToPay, 2, ',', '.');
-                    }),
+                                TextInput::make('quantity')
+                                    ->label('Quantidade')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->numeric(),
+                            ])->columns(4),
+                        ]),
+                ])->columns(1),
+
+                Grid::make([])->schema([
+                    PtbrMoney::make('amount')
+                        ->translateLabel()
+                        ->disabled(),
+
+                    Placeholder::make('totalToPay')
+                        ->label('Total a pagar')
+                        ->content(function (Get $get, Set $set) {
+                            $amount = collect($get('items'))
+                                ->sum(
+                                    function ($item) {
+                                        $priceState = data_get($item, 'price', '0,00');
+                                        $quantityState = data_get($item, 'quantity', '0');
+                                        $priceFloat = ptbr_money_to_float(
+                                            $priceState
+                                        );
+                                        $calc = $priceFloat * $quantityState;
+
+                                        return $calc;
+                                    }
+                                );
+
+                            $set('amount', number_format($amount, 2, ',', '.'));
+
+                            $totalToPay = $amount
+                                - ptbr_money_to_float($get('deposit') ?? 0)
+                                - ptbr_money_to_float($get('discount') ?? 0);
+
+                            return number_format($totalToPay, 2, ',', '.');
+                        }),
+                ])->columns(2),
             ]);
     }
 
@@ -121,8 +186,7 @@ class OrderResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-        ];
+        return [];
     }
 
     public static function getPages(): array
