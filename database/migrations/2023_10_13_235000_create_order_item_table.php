@@ -11,6 +11,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create('order_item', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table->uuid('order_id');
             $table->uuid('item_id');
             $table->integer('quantity')->default(1);
