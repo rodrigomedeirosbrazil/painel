@@ -8,6 +8,7 @@ use App\Models\Item;
 use App\Models\Order;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -59,16 +60,6 @@ class OrderResource extends Resource
                 ])->columns(2),
 
                 Grid::make([])->schema([
-                    PtbrMoney::make('deposit')
-                        ->live(onBlur: true)
-                        ->translateLabel(),
-
-                    PtbrMoney::make('discount')
-                        ->live(onBlur: true)
-                        ->translateLabel(),
-                ])->columns(2),
-
-                Grid::make([])->schema([
                     Repeater::make('items')
                         ->label('Itens')
                         ->relationship()
@@ -108,12 +99,18 @@ class OrderResource extends Resource
                 ])->columns(1),
 
                 Grid::make([])->schema([
-                    PtbrMoney::make('amount')
-                        ->translateLabel()
-                        ->disabled(),
+                    Hidden::make('amount'),
 
-                    Placeholder::make('totalToPay')
-                        ->label('Total a pagar')
+                    PtbrMoney::make('deposit')
+                        ->live(onBlur: true)
+                        ->translateLabel(),
+
+                    PtbrMoney::make('discount')
+                        ->live(onBlur: true)
+                        ->translateLabel(),
+
+                    Placeholder::make('total')
+                        ->label('Total')
                         ->content(function (Get $get, Set $set) {
                             $amount = collect($get('items'))
                                 ->sum(
@@ -129,15 +126,15 @@ class OrderResource extends Resource
                                     }
                                 );
 
-                            $set('amount', number_format($amount, 2, ',', '.'));
-
                             $totalToPay = $amount
                                 - ptbr_money_to_float($get('deposit') ?? 0)
                                 - ptbr_money_to_float($get('discount') ?? 0);
 
+                            $set('amount', number_format($totalToPay, 2, '.', ''));
+
                             return number_format($totalToPay, 2, ',', '.');
                         }),
-                ])->columns(2),
+                ])->columns(3),
             ]);
     }
 
