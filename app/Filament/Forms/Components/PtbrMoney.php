@@ -34,6 +34,7 @@ class PtbrMoney extends TextInput
                         money = money.replace(/(\d)(\d{3}),/g, "$1.$2,");
 
                         $el.value = money;
+                        $el.dispatchEvent(new Event(\'input\'));
                     }',
             ])
             ->dehydrateMask()
@@ -51,8 +52,7 @@ class PtbrMoney extends TextInput
                     floatval(
                         Str::of($state)
                             ->replace('.', '')
-                            ->replace(',', '')
-                            ->substrReplace('.', -2, 0)
+                            ->replace(',', '.')
                             ->toString()
                     ) :
                     null
