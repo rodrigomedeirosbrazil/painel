@@ -100,6 +100,11 @@ trait OrderForm
                         Select::make('item_id')
                             ->label('Item')
                             ->relationship('item', 'name')
+                            ->disableOptionWhen(function (Get $get, string $value): bool {
+                                return collect($get('data.items', true))
+                                    ->pluck('item_id')
+                                    ->contains($value);
+                            })
                             ->searchable()
                             ->required()
                             ->live()
