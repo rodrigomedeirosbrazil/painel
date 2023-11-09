@@ -73,8 +73,8 @@ class ItemResource extends Resource
                 Tables\Columns\TextColumn::make('value')
                     ->label('Valor')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, ',', '.')),
-                Tables\Columns\TextColumn::make('quantity')
-                    ->label('Quantidade')
+                Tables\Columns\TextColumn::make('stock')
+                    ->label('Estoque')
                     ->numeric(),
             ])
             ->filters([
