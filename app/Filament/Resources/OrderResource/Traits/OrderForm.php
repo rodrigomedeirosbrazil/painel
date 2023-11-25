@@ -41,9 +41,11 @@ trait OrderForm
 
                 Grid::make([])->schema([
                     DatePicker::make('pickup')
+                        ->live(onBlur: true)
                         ->translateLabel(),
 
                     DatePicker::make('delivery')
+                        ->live(onBlur: true)
                         ->translateLabel(),
                 ])->columns(2),
 
@@ -95,6 +97,22 @@ trait OrderForm
             Repeater::make('items')
                 ->label('Itens')
                 ->relationship()
+                ->mutateRelationshipDataBeforeFillUsing(function (array $data, Get $get): array {
+                    $item = Item::find(
+                        data_get($data, 'item_id')
+                    );
+
+                    $stock = $item ?
+                        $item->getAvailableStock(
+                            $get('data.pickup', true),
+                            $get('data.delivery', true),
+                            $get('data.id', true)
+                        )
+                        : 0;
+                    data_set($data, 'stock', $stock);
+
+                    return $data;
+                })
                 ->schema([
                     Grid::make([])->schema([
                         Select::make('item_id')
@@ -109,11 +127,19 @@ trait OrderForm
                             ->required()
                             ->live()
                             ->afterStateUpdated(
-                                function (callable $set, $state) {
+                                function (callable $set, Get $get, $state) {
                                     $item = Item::find($state);
-                                    $set('quantity', $item?->stock ?? 1);
+
+                                    $stock = $item->getAvailableStock(
+                                        $get('data.pickup', true),
+                                        $get('data.delivery', true),
+                                        $get('data.id', true)
+                                    );
+
+                                    $set('quantity', 1);
                                     $set('price', $item?->value ?? 1);
                                     $set('price_repo', $item?->value_repo ?? 1);
+                                    $set('stock', $stock);
                                 }
                             ),
 
@@ -131,7 +157,19 @@ trait OrderForm
                             ->required()
                             ->live(onBlur: true)
                             ->numeric(),
-                    ])->columns(4),
+
+                        Hidden::make('stock'),
+
+                        Placeholder::make('no-stock')
+                            ->content('Sem estoque!')
+                            ->label('Atenção:')
+                            ->hidden(
+                                fn (Get $get) => $get('stock') - $get('quantity') > 0
+                            ),
+
+                    ])
+                        ->columns(5)
+                        ->hidden(fn (Get $get): bool => ! $get('data.pickup', true) || ! $get('data.delivery', true)),
                 ]),
         ];
     }
