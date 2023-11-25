@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -34,19 +33,30 @@ class Item extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public static function getAvailableStock(
-        string $itemId,
-        CarbonInterface $pickup,
-        CarbonInterface $delivery,
+    public static function getItemAvailableStock(
+        string | Model $item,
+        string $pickup,
+        string $delivery,
         string $exceptOrderId = null
     ): int {
-        $item = self::find($itemId);
+        if (is_string($item)) {
+            $item = self::find($item);
+        }
+
         if (! $item) {
             return 0;
         }
 
+        return $item->getAvailableStock($pickup, $delivery, $exceptOrderId);
+    }
+
+    public function getAvailableStock(
+        string $pickup,
+        string $delivery,
+        string $exceptOrderId = null
+    ): int {
         $quantityOrdered = OrderItem::query()
-            ->where('item_id', $itemId)
+            ->where('item_id', $this->id)
             ->whereHas(
                 'order',
                 fn ($query) => $query->where('pickup', '>', $pickup)
@@ -55,6 +65,6 @@ class Item extends Model
             ->when($exceptOrderId, fn ($query) => $query->where('order_id', '!=', $exceptOrderId))
             ->sum('quantity');
 
-        return $item->stock - $quantityOrdered;
+        return $this->stock - $quantityOrdered;
     }
 }
