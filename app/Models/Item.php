@@ -59,8 +59,8 @@ class Item extends Model
             ->where('item_id', $this->id)
             ->whereHas(
                 'order',
-                fn ($query) => $query->where('pickup', '>', $pickup)
-                    ->where('delivery', '<', $delivery)
+                fn ($query) => $query->where('pickup', '<=', $delivery)
+                    ->where('delivery', '>=', $pickup)
             )
             ->when($exceptOrderId, fn ($query) => $query->where('order_id', '!=', $exceptOrderId))
             ->sum('quantity');
